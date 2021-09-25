@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "bruhai"
+version = "0.0.1"
+description = "BruhAI - a homemade AGI."
+authors = ["gaponov.daniil@gmail.com", "opryshko.evgeniy@gmail.com"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+toml = "^0.10.2"
+
+[tool.poetry.dev-dependencies]
+isort = "^5.9.3"
+flake8 = "^3.9.2"
+mypy = "^0.910"
+pre-commit = "^2.15.0"
+types-toml = "^0.10.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
