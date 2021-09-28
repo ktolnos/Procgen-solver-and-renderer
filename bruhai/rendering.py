@@ -1,5 +1,4 @@
 import abc
-from typing import Optional, Tuple
 
 import pygame
 from numpy import ndarray
@@ -7,28 +6,23 @@ from numpy import ndarray
 
 class Renderer(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def init_display(self, width: int, height: int, scale_factor: int):
+    def __init__(self, width: int, height: int, scale_factor: int) -> None:
         ...
 
     @abc.abstractmethod
-    def render(self, rgb: ndarray):
+    def render(self, rgb: ndarray) -> None:
         ...
 
 
 class PyGameRenderer(Renderer):
-    def __init__(self):
-        pygame.init()
-        self.size: Optional[Tuple[int, int]] = None
-        self.scale_factor: Optional[int] = None
-        self.screen: Optional[pygame.Surface] = None
-
-    def init_display(self, width: int, height: int, scale_factor: int):
+    def __init__(self, width: int, height: int, scale_factor: int) -> None:
         assert width > 0 and height > 0 and scale_factor > 0
+        pygame.init()
         self.size = width * scale_factor, height * scale_factor
         self.scale_factor = scale_factor
         self.screen = pygame.display.set_mode(self.size)
 
-    def render(self, rgb: ndarray):
+    def render(self, rgb: ndarray) -> None:
         for x in range(rgb.shape[0]):
             for y in range(rgb.shape[1]):
                 for sx in range(self.scale_factor):

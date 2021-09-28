@@ -1,7 +1,7 @@
 import random
 from enum import IntEnum
 from time import sleep
-from typing import Optional
+from typing import Type, Optional
 
 import gym
 from gym3 import ToGymEnv
@@ -34,28 +34,25 @@ MOVE_ACTIONS = (
 
 
 class Test:
-    def __init__(self, renderer: Renderer = None, render_n_frame: int = 1):
+    def __init__(self, renderer_class: Type[Renderer] = None, render_n_frame: int = 1):
+        self.env: ToGymEnv = gym.make("procgen:procgen-heist-v0")
         assert render_n_frame > 0
-        self.env: Optional[ToGymEnv] = None
-        self.renderer = renderer
+        self.renderer: Optional[Renderer] = renderer_class(64, 64, 8) if renderer_class else None
         self.render_n_frame = render_n_frame
         self.episode_num = 0
         self.step_num = 0
 
-    def run(self):
-        self.env = gym.make("procgen:procgen-heist-v0")
-        print(type(self.env))
+    def run(self) -> None:
         for episode in range(1):
             self.next_episode()
         self.env.close()
 
-    def next_episode(self):
+    def next_episode(self) -> None:
         self.episode_num += 1
         print(f"Episode #{self.episode_num}")
         obs = self.env.reset()
         self.step_num = 0
         if self.renderer:
-            self.renderer.init_display(64, 64, 8)
             self.renderer.render(obs)
         sleep(1)
         while True:
