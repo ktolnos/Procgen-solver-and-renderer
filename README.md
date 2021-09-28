@@ -5,12 +5,12 @@ A homemade AGI.
 ### Before start
 * install the latest `poetry` version (https://python-poetry.org)
 * install dependencies from .lock file with `poetry install`
-* run `pre-commit` do build pre-commit environment
+* run `pre-commit` to build pre-commit environment
 
 ### Run linters
 * run all: `pre-commit`
 * manually run mypy: `mypy .`
-* manually run isort (and fix packages order): `isort .`
+* manually run isort (and fix imports order): `isort .`
 * manually run flake8: `flake8 .`
 
 ### Add new dependency
