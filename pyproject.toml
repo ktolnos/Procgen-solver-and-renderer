@@ -2,11 +2,16 @@
 name = "bruhai"
 version = "0.0.1"
 description = "BruhAI - a homemade AGI."
-authors = ["gaponov.daniil@gmail.com", "opryshko.evgeniy@gmail.com"]
+authors = [
+    "Daniil Gaponov <gaponov.daniil@gmail.com>",
+    "Evgeniy Opryshko <opryshko.evgeniy@gmail.com>",
+]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "=3.8.10"  # procgen requires 3.6-3.8
 toml = "^0.10.2"
+procgen = "=0.10.4"  # freezing for reproducible results
+pygame = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.9.3"
