@@ -40,10 +40,9 @@ class Test:
         self.renderer: Optional[Renderer] = renderer_class(64, 64, 8) if renderer_class else None
         self.render_n_frame = render_n_frame
         self.episode_num = 0
-        self.step_num = 0
 
     def run(self) -> None:
-        for episode in range(1):
+        for episode in range(10):
             self.next_episode()
         self.env.close()
 
@@ -51,17 +50,18 @@ class Test:
         self.episode_num += 1
         print(f"Episode #{self.episode_num}")
         obs = self.env.reset()
-        self.step_num = 0
+        step_num = 0
         if self.renderer:
             self.renderer.render(obs)
         sleep(1)
+        reward = 0
         while True:
             rand_action = random.choice(MOVE_ACTIONS)
             nobs, reward, done, _ = self.env.step(rand_action)
-            if self.renderer and self.step_num % self.render_n_frame == 0:
+            if self.renderer and step_num % self.render_n_frame == 0:
                 self.renderer.render(nobs)
             if done:
                 break
-            self.step_num += 1
-        print(self.step_num)
+            step_num += 1
+        print(f"Finished in `{step_num}` steps with reward `{reward}`.")
         sleep(1)

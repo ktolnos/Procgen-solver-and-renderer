@@ -6,7 +6,7 @@ from numpy import ndarray
 
 class Renderer(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def __init__(self, width: int, height: int, scale_factor: int) -> None:
+    def __init__(self, width: int, height: int, scale_factor: int):
         ...
 
     @abc.abstractmethod
@@ -15,7 +15,7 @@ class Renderer(metaclass=abc.ABCMeta):
 
 
 class PyGameRenderer(Renderer):
-    def __init__(self, width: int, height: int, scale_factor: int) -> None:
+    def __init__(self, width: int, height: int, scale_factor: int):
         assert width > 0 and height > 0 and scale_factor > 0
         pygame.init()
         self.size = width * scale_factor, height * scale_factor
