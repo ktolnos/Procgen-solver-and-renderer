@@ -45,9 +45,8 @@ class PyGameRenderer(Renderer):
         self.__running = True
 
     def render(self, rgb: ndarray) -> bool:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return False
+        if pygame.event.get(pygame.QUIT):
+            return False
 
         transformed_rgb = self.__transform_to_pygame_coordinates(rgb)
 

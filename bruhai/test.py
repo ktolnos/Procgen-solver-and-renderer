@@ -22,7 +22,13 @@ class Test:
         obs[mask] = 0
         obs += overlay
 
-    def __init__(self, policy: Policy, renderer_factory: RendererFactory = None, render_n_frame: int = 1, runs=10):
+    def __init__(
+            self,
+            policy: Policy,
+            renderer_factory: RendererFactory = None,
+            render_n_frame: int = 1,
+            runs: int = 10
+    ):
         self.env: ToGymEnv = gym.make(
             "procgen:procgen-heist-v0",
             use_backgrounds=False,
@@ -55,14 +61,16 @@ class Test:
         total_reward = 0
         while True:
             step_num += 1
-            action, debug_info = self.policy.select_action(obs, reward)
-            if debug_info.log:
-                print(debug_info.log)
+            action = self.policy.select_action(obs, reward)
+            log_string = self.policy.debug_info.log
+            if log_string:
+                print(log_string)
             obs, reward, done, _ = self.env.step(action)
             total_reward += reward
             if self.renderer and step_num % self.render_n_frame == 0:
-                if debug_info.overlay is not None:
-                    self.__add_overlay(obs, debug_info.overlay)
+                overlay = self.policy.debug_info.overlay
+                if overlay is not None:
+                    self.__add_overlay(obs, overlay)
                 should_continue = self.renderer.render(obs)
                 if not should_continue:
                     print(f"Quit on `{step_num}` steps with reward `{total_reward}`.")
