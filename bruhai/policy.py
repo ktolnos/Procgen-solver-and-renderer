@@ -1,6 +1,8 @@
 import abc
 import random
+from dataclasses import dataclass
 from enum import IntEnum
+from typing import Optional
 
 import numpy as np
 
@@ -29,12 +31,19 @@ MOVE_ACTIONS = (
 )
 
 
+@dataclass
+class PolicyDebugInfo:
+    """Overlay to draw over next observation"""
+    overlay: Optional[np.ndarray] = None,
+    log: str = ""
+
+
 class Policy(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def select_action(self, observation: np.ndarray, last_reward: int) -> int:
+    def select_action(self, observation: np.ndarray, last_reward: int) -> (int, PolicyDebugInfo):
         ...
 
 
 class RandomMovePolicy(Policy):
-    def select_action(self, observation: np.ndarray, last_reward: int) -> int:
-        return random.choice(MOVE_ACTIONS)
+    def select_action(self, observation: np.ndarray, last_reward: int) -> (int, PolicyDebugInfo):
+        return random.choice(MOVE_ACTIONS), PolicyDebugInfo()
