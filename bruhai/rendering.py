@@ -22,11 +22,8 @@ class RendererScreenSettings:
 
 class Renderer(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def render(self, rgb: ndarray) -> bool:
-        """Renders the game and handles user input.
-
-        :returns True if environment should continue, False if it should quit.
-        """
+    def render(self, rgb: ndarray) -> None:
+        ...
 
 
 class PyGameRenderer(Renderer):
@@ -44,14 +41,11 @@ class PyGameRenderer(Renderer):
         self.scaled_surface = pygame.surface.Surface(screen_settings.scaled_size)
         self.__running = True
 
-    def render(self, rgb: ndarray) -> bool:
-        if pygame.event.get(pygame.QUIT):
-            return False
-
+    def render(self, rgb: ndarray) -> None:
         transformed_rgb = self.__transform_to_pygame_coordinates(rgb)
 
         pygame.pixelcopy.array_to_surface(self.surface, transformed_rgb)
         pygame.transform.scale(self.surface, self.screen_settings.scaled_size, self.scaled_surface)
         self.screen.blit(self.scaled_surface, TOP_LEFT)
         pygame.display.flip()
-        return True
+        return
