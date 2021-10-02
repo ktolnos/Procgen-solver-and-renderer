@@ -18,11 +18,13 @@ logger = logging.getLogger(__name__)
 
 class Mastermind:
     @staticmethod
-    def _add_overlay(obs: np.ndarray, overlay: np.ndarray):
+    def _add_overlay(obs: np.ndarray, overlay: np.ndarray) -> np.ndarray:
         red, green, blue = overlay[:, :, 0], overlay[:, :, 1], overlay[:, :, 2]
         mask = (red != 0) | (green != 0) | (blue != 0)
-        obs[mask] = 0
-        obs += overlay
+        result = np.copy(obs)
+        result[mask] = 0
+        result += overlay
+        return result
 
     def __init__(
         self,
@@ -61,6 +63,7 @@ class Mastermind:
     def next_episode(self) -> None:
         self.episode_num += 1
         logger.info(f"Episode #{self.episode_num}")
+        self.policy.on_environment_reset()
         obs = self.env.reset()
         step_num = 0
         if self.renderer:
@@ -80,6 +83,7 @@ class Mastermind:
 
             step_num += 1
             action = self.policy.select_action(obs, reward)
+            print(f"action {action}")
             log_string = self.policy.debug_info.log
             if log_string:
                 logger.debug(log_string)
@@ -87,9 +91,10 @@ class Mastermind:
             total_reward += reward
             if self.renderer and step_num % self.render_n_frame == 0:
                 overlay = self.policy.debug_info.overlay
+                obs_to_render = obs
                 if overlay is not None:
-                    self._add_overlay(obs, overlay)
-                self.renderer.render(obs)
+                    obs_to_render = self._add_overlay(obs, overlay)
+                self.renderer.render(obs_to_render)
             if self.sleep_between_frames:
                 self.sleep_func(self.sleep_between_frames)
             if done:

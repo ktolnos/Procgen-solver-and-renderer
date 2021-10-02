@@ -40,6 +40,9 @@ class Policy(metaclass=abc.ABCMeta):
     def __init__(self):
         self.debug_info: PolicyDebugInfo = PolicyDebugInfo()
 
+    def on_environment_reset(self) -> None:
+        """should be called when environment is reset (new level is loaded)"""
+
     @abc.abstractmethod
     def select_action(self, observation: np.ndarray, last_reward: int) -> int:
         ...

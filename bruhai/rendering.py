@@ -27,9 +27,6 @@ class RendererScreenSettings:
 
 
 class Renderer(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def __init__(self, screen_settings: RendererScreenSettings):
-        ...
 
     @abc.abstractmethod
     def render(self, rgb: ndarray) -> None:
@@ -42,15 +39,18 @@ class PyGameRenderer(Renderer):
         transformed_rgb = np.rot90(rgb)
         return np.flip(transformed_rgb, axis=0)
 
-    def __init__(self, screen_settings: RendererScreenSettings):
+    def __init__(self, screen_settings: RendererScreenSettings, transform_coords: bool = False):
         pygame.init()
         self.screen_settings = screen_settings
+        self.transform_coords = transform_coords
         self.screen = pygame.display.set_mode(screen_settings.scaled_size)
         self.surface = pygame.surface.Surface(screen_settings.size)
         self.scaled_surface = pygame.surface.Surface(screen_settings.scaled_size)
 
     def render(self, rgb: ndarray) -> None:
-        transformed_rgb = self._transform_to_pygame_coordinates(rgb)
+        transformed_rgb = rgb
+        if self.transform_coords:
+            transformed_rgb = self._transform_to_pygame_coordinates(rgb)
         pygame.pixelcopy.array_to_surface(self.surface, transformed_rgb)
         pygame.transform.scale(self.surface, self.screen_settings.scaled_size, self.scaled_surface)
         self.screen.blit(self.scaled_surface, (0, 0))
