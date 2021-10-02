@@ -1,34 +1,51 @@
 import abc
+from dataclasses import dataclass
 
+import numpy as np
 import pygame
 from numpy import ndarray
 
+TOP_LEFT = (0, 0)
+
+
+@dataclass
+class RendererScreenSettings:
+    width: int
+    height: int
+    scale_factor: int
+
+    def __post_init__(self):
+        assert self.width > 0 and self.height > 0 and self.scale_factor > 0
+        self.size = self.width, self.height
+        self.scaled_size = self.width * self.scale_factor, self.height * self.scale_factor
+
 
 class Renderer(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def __init__(self, width: int, height: int, scale_factor: int):
-        ...
-
     @abc.abstractmethod
     def render(self, rgb: ndarray) -> None:
         ...
 
 
 class PyGameRenderer(Renderer):
-    def __init__(self, width: int, height: int, scale_factor: int):
-        assert width > 0 and height > 0 and scale_factor > 0
+
+    @staticmethod
+    def __transform_to_pygame_coordinates(rgb: ndarray):
+        transformed_rgb = np.rot90(rgb)
+        return np.flip(transformed_rgb, axis=0)
+
+    def __init__(self, screen_settings: RendererScreenSettings):
         pygame.init()
-        self.size = width * scale_factor, height * scale_factor
-        self.scale_factor = scale_factor
-        self.screen = pygame.display.set_mode(self.size)
+        self.screen_settings = screen_settings
+        self.screen = pygame.display.set_mode(screen_settings.scaled_size)
+        self.surface = pygame.surface.Surface(screen_settings.size)
+        self.scaled_surface = pygame.surface.Surface(screen_settings.scaled_size)
+        self.__running = True
 
     def render(self, rgb: ndarray) -> None:
-        for x in range(rgb.shape[0]):
-            for y in range(rgb.shape[1]):
-                for sx in range(self.scale_factor):
-                    for sy in range(self.scale_factor):
-                        self.screen.set_at(
-                            (x * self.scale_factor + sx, y * self.scale_factor + sy),
-                            rgb[x, y],
-                        )
+        transformed_rgb = self.__transform_to_pygame_coordinates(rgb)
+
+        pygame.pixelcopy.array_to_surface(self.surface, transformed_rgb)
+        pygame.transform.scale(self.surface, self.screen_settings.scaled_size, self.scaled_surface)
+        self.screen.blit(self.scaled_surface, TOP_LEFT)
         pygame.display.flip()
+        return

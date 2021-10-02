@@ -6,6 +6,7 @@ A homemade AGI.
 * install the latest `poetry` version (https://python-poetry.org)
 * install dependencies from .lock file with `poetry install`
 * run `pre-commit` to build pre-commit environment
+* run `pre-commit install` to install pre-commit as git hook
 
 ### Run linters
 * run all: `pre-commit`
