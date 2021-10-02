@@ -21,7 +21,7 @@ repos:
     rev: "5.9.3"
     hooks:
       - id: isort
-        name: isort (python)
+        name: isort
         language: python
         types:
           - python

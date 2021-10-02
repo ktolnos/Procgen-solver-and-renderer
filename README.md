@@ -1,6 +1,6 @@
 # BruhAI
 
-A homemade AGI.
+A homebrew AGI.
 
 ### Before start
 * install the latest `poetry` version (https://python-poetry.org)
@@ -21,5 +21,5 @@ A homemade AGI.
 * if you have conflicting .lock file from another branch - rebuild .lock file with `poetry update`
 
 ### Credits
-* opryshko.evgeniy@gmail.com - research
+* opryshko.evgeniy@gmail.com - research, dev
 * gaponov.daniil@gmail.com - dev, repo maintainer

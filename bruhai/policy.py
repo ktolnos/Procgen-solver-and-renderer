@@ -37,7 +37,8 @@ class PolicyDebugInfo:
 
 
 class Policy(metaclass=abc.ABCMeta):
-    debug_info: PolicyDebugInfo = PolicyDebugInfo()
+    def __init__(self):
+        self.debug_info: PolicyDebugInfo = PolicyDebugInfo()
 
     @abc.abstractmethod
     def select_action(self, observation: np.ndarray, last_reward: int) -> int:

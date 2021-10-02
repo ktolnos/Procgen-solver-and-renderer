@@ -1,15 +1,13 @@
 import bruhai.utils as utils
 from bruhai.keyboard import PyGameKeyboardListener
+from bruhai.mastermind import Mastermind
 from bruhai.policy import RandomMovePolicy
 from bruhai.rendering import PyGameRenderer
-from bruhai.test import RunningSpeeds, Test
 
 if __name__ == "__main__":
-    Test(
+    Mastermind(
         policy=RandomMovePolicy(),
         keyboard_listener=PyGameKeyboardListener(),
         renderer_factory=PyGameRenderer,
-        speed=RunningSpeeds.NORMAL,
-        sleep=utils.pygame_sleep,
-        runs=10,
+        sleep_func=utils.pygame_sleep,
     ).run()

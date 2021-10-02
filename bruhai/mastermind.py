@@ -1,54 +1,37 @@
+import logging
 import time
-from dataclasses import dataclass
-from enum import Enum
-from typing import Callable, Optional
+from typing import Callable, Optional, Type
 
 import gym
 import numpy as np
 from gym3 import ToGymEnv
 
-from bruhai.keyboard import KeyboardActions, KeyboardListener
+from bruhai.keyboard import KeyboardEvent, KeyboardListener
 from bruhai.policy import Policy
 from bruhai.rendering import Renderer, RendererScreenSettings
+from bruhai.running_speed import RunningSpeed
 
 SLEEP_TIME_BETWEEN_GAMES = 0.1
-NORMAL_SPEED_STEPS_PER_FRAME = 1
-FAST_SPEED_STEPS_PER_FRAME = 8
-SLOW_SPEED_INTER_FRAME_DELAY = 0.5
 
-RendererFactory = Callable[[RendererScreenSettings], Renderer]
+logger = logging.getLogger(__name__)
 
 
-@dataclass(eq=False)
-class RunningSpeed:
-    steps_per_frame: int
-    sleep_between_frames: Optional[float] = None
-
-
-class RunningSpeeds(Enum):
-    SLOW = RunningSpeed(1, SLOW_SPEED_INTER_FRAME_DELAY)
-    NORMAL = RunningSpeed(NORMAL_SPEED_STEPS_PER_FRAME)
-    FAST = RunningSpeed(FAST_SPEED_STEPS_PER_FRAME)
-    STEP = RunningSpeed(1)
-
-
-class Test:
-
+class Mastermind:
     @staticmethod
-    def __add_overlay(obs: np.ndarray, overlay: np.ndarray):
+    def _add_overlay(obs: np.ndarray, overlay: np.ndarray):
         red, green, blue = overlay[:, :, 0], overlay[:, :, 1], overlay[:, :, 2]
         mask = (red != 0) | (green != 0) | (blue != 0)
         obs[mask] = 0
         obs += overlay
 
     def __init__(
-            self,
-            policy: Policy,
-            keyboard_listener: Optional[KeyboardListener] = None,
-            renderer_factory: Optional[RendererFactory] = None,
-            speed: RunningSpeeds = RunningSpeeds.NORMAL,
-            runs: int = 10,
-            sleep: Callable[[float], None] = time.sleep,
+        self,
+        policy: Policy,
+        keyboard_listener: Optional[KeyboardListener] = None,
+        renderer_factory: Optional[Type[Renderer]] = None,
+        speed: RunningSpeed = RunningSpeed.Normal,
+        runs: int = 10,
+        sleep_func: Callable[[float], None] = time.sleep,
     ):
         self.env: ToGymEnv = gym.make(
             "procgen:procgen-heist-v0",
@@ -61,12 +44,12 @@ class Test:
         self.episode_num = 0
         self.policy = policy
         self.runs = runs
-        self.sleep = sleep
+        self.sleep_func = sleep_func
         self.keyboard_listener = keyboard_listener
         self.is_paused = False
         self.make_step = False
         self.quit = False
-        self.__set_running_speed(speed)
+        self._set_running_speed(speed)
 
     def run(self) -> None:
         for episode in range(self.runs):
@@ -77,7 +60,7 @@ class Test:
 
     def next_episode(self) -> None:
         self.episode_num += 1
-        print(f"Episode #{self.episode_num}")
+        logger.info(f"Episode #{self.episode_num}")
         obs = self.env.reset()
         step_num = 0
         if self.renderer:
@@ -85,10 +68,11 @@ class Test:
         reward = 0
         total_reward = 0
         while True:
-            self.__handle_keyboard_input_if_needed()
+            if self.keyboard_listener:
+                self._listen_keyboard_events()
 
             if self.quit:
-                print(f"Quit on `{step_num}` steps with reward `{total_reward}`.")
+                logger.info(f"Quit on `{step_num}` steps with reward `{total_reward}`.")
                 return
             if self.is_paused and not self.make_step:
                 continue
@@ -98,43 +82,42 @@ class Test:
             action = self.policy.select_action(obs, reward)
             log_string = self.policy.debug_info.log
             if log_string:
-                print(log_string)
+                logger.debug(log_string)
             obs, reward, done, _ = self.env.step(action)
             total_reward += reward
             if self.renderer and step_num % self.render_n_frame == 0:
                 overlay = self.policy.debug_info.overlay
                 if overlay is not None:
-                    self.__add_overlay(obs, overlay)
+                    self._add_overlay(obs, overlay)
                 self.renderer.render(obs)
             if self.sleep_between_frames:
-                self.sleep(self.sleep_between_frames)
+                self.sleep_func(self.sleep_between_frames)
             if done:
                 break
-        print(f"Finished in `{step_num}` steps with reward `{total_reward}`.")
-        self.sleep(SLEEP_TIME_BETWEEN_GAMES)
+        logger.info(f"Finished in `{step_num}` steps with reward `{total_reward}`.")
+        self.sleep_func(SLEEP_TIME_BETWEEN_GAMES)
         return
 
-    def __handle_keyboard_input_if_needed(self):
-        if self.keyboard_listener is None:
-            return
-        actions = self.keyboard_listener.actions
-        if KeyboardActions.QUIT in actions:
+    def _listen_keyboard_events(self):
+        events = self.keyboard_listener.listen()
+        if KeyboardEvent.Quit in events:
             self.quit = True
-        if KeyboardActions.PAUSE in actions:
+        if KeyboardEvent.Pause in events:
             self.is_paused = not self.is_paused
-        if KeyboardActions.STEP in actions:
-            self.__set_running_speed(RunningSpeeds.STEP)
-        if KeyboardActions.SPEED_SLOW in actions:
-            self.__set_running_speed(RunningSpeeds.SLOW)
-        if KeyboardActions.SPEED_NORMAL in actions:
-            self.__set_running_speed(RunningSpeeds.NORMAL)
-        if KeyboardActions.SPEED_FAST in actions:
-            self.__set_running_speed(RunningSpeeds.FAST)
 
-    def __set_running_speed(self, speed: RunningSpeeds):
+        if KeyboardEvent.Step in events:
+            self._set_running_speed(RunningSpeed.Step)
+        elif KeyboardEvent.SpeedSlow in events:
+            self._set_running_speed(RunningSpeed.Slow)
+        elif KeyboardEvent.SpeedNormal in events:
+            self._set_running_speed(RunningSpeed.Normal)
+        elif KeyboardEvent.SpeedFast in events:
+            self._set_running_speed(RunningSpeed.Fast)
+
+    def _set_running_speed(self, speed: RunningSpeed):
         self.render_n_frame = speed.value.steps_per_frame
         self.sleep_between_frames = speed.value.sleep_between_frames
         self.is_paused = False
-        if speed is RunningSpeeds.STEP:
+        if speed.value.is_step:
             self.is_paused = True
             self.make_step = True
